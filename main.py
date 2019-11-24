@@ -20,9 +20,9 @@ def main():
 		print(' '.join(str(x) for x in instruction))
 		# Add calls to each instruction
 		if instruction[0]=='P':
-			instructions.P(instruction[1], instruction[2], instruction[3])
+			instructions.P(instruction[1], instruction[2])
 		elif instruction[0]=='A':
-			instructions.A(instruction[1], instruction[2])
+			instructions.A(instruction[1], instruction[2], instruction[3])
 		elif instruction[0]=='E' :
 			instructions.E()
 main()
