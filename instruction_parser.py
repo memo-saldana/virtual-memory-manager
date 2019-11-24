@@ -1,7 +1,7 @@
 import sys
 import os
 
-def parse_instruction():
+def parse_instructions():
 	instructions = []
 	user_input = input('Ingresa el nombre (PATH) del archivo de instrucciones: ')
 	file_path = user_input.rstrip('\r')
@@ -75,11 +75,4 @@ def parse_instruction():
 				print('Terminando ejecucion por error de input')
 				exit()
 			instructions.append(instruction)
-		print(instructions)
 		return instructions
-
-
-parse_instruction()
-
-
-
