@@ -107,6 +107,23 @@ def P(n, p):
     print("Se asignaron los marcos de página", frames, "al proceso", p)
     proc_pages[p] = frames
 
+def L(p):
+
+    print ("Liberar los marcos de página ocupados por el proceso ", p)
+    
+    if (proc_pages[p] == None): 
+        print ("El proceso ", p, " no se ha ejecutado")
+        return
+    
+    pages = proc_pages[p]
+    size = len(pages) 
+ 
+    for i in pages:
+        for j in range(i, i + PAGE_SIZE):
+            M[j] = None
+   
+    print ("Se liberan los marcos de página de memoria real: ", pages)
+
 def E():
 	print("Fin de instrucciones")
 	exit()

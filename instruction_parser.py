@@ -72,7 +72,7 @@ def parse_instructions():
 				instruction = [words[0]]
 			else: 
 				print("Instruccion invalida")
-				print('Terminando ejecucion por error de input')
+				print('Terminando ejecución por error de input')
 				exit()
 			instructions.append(instruction)
 		return instructions
