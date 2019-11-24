@@ -3,7 +3,7 @@ import os
 
 def parse_instruction():
 	instructions = []
-	user_input = raw_input('Ingresa el nombre (PATH) del archivo de instrucciones: ')
+	user_input = input('Ingresa el nombre (PATH) del archivo de instrucciones: ')
 	file_path = user_input.rstrip('\r')
 	if not os.path.isfile(file_path):
 		print('El archivo no existe, revisa el nombre ingresado')
@@ -64,7 +64,6 @@ def parse_instruction():
 					print('Terminando ejecucion por error de input')
 					exit()
 			elif words[0] == 'C':
-				print("Instruction C")
 				instruction = [words[0]]
 				instruction.append(' '.join(words[1::]))
 			elif words[0]== 'E':
