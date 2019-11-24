@@ -1,12 +1,6 @@
 import sys
 from instruction_parser import parse_instructions
-
-""" 
-	Bool that sets strategy for simulation
-	true - uses fifo
-	false - uses lru		 
-"""
-strategy
+from instructions import E
 
 def main():
 	if(len(sys.argv) < 2 or sys.argv[1] not in ['fifo', 'lru']):
@@ -14,10 +8,17 @@ def main():
 		exit()
 	print('script with name ', sys.argv[0])
 	print('replacement strategy ', sys.argv[1])
-	strategy = True if argv[1] == 'fifo' else False
+	""" 
+		Bool that sets strategy for simulation
+		true - uses fifo
+		false - uses lru		 
+	"""
+	strategy = True if sys.argv[1] == 'fifo' else False
 
 	instructions = parse_instructions()
 	for instruction in instructions:
-		print(instruction)
+		print(' '.join(str(x) for x in instruction))
 		# Add calls to each instruction
+		if(instruction[0]=='E'):
+			E()
 main()
