@@ -7,7 +7,7 @@ PAGE_SIZE = 16
 M = [None] * MEM_SIZE
 # Swapping area
 S = [None] * 4096
-# To keep track of which pages every process is loaded at.
+# To keep track of which frames every process is loaded at.
 proc_pages = {}
 
 # Load a process to memory (M).
@@ -16,39 +16,93 @@ proc_pages = {}
 # Command example: P 534 5834
 def load_process(n, p):
 
-    print("Asignar ", n, " bytes al proceso ", p)
+    print("\nAsignar", n, "bytes al proceso", p)
 
-    # Calculate how many pages are needed to load the process.
-    pages = math.ceil(n / PAGE_SIZE)
-    if pages <= 0:
-        print("Error: process size must be positive")
+    # Handle invalid cases
+    if n <= 0:
+        print("Error: el tamaño del proceso debe ser mayor que cero.")
+        return
+
+    if n > 2048:
+        print("Error: el tamaño del proceso no puede exceder 2048 bytes.")
         return
 
     if p < 0:
-        print("Error: process ID must be zero or positive")
+        print("Error: el identificador del proceso debe ser igual o mayor que cero.")
+        return
+
+    if p in proc_pages:
+        print("Error: ya existe un proceso con ese identificador.")
         return
     
+    # Calculate how many pages are needed to load the process.
+    num_of_pages = math.ceil(n / PAGE_SIZE)
     # Pages left to load.
-    pages_left = pages
-    # Last page where part of the process was loaded.
-    last_page = 0
+    pages_left = num_of_pages
 
-    # Pages used.
-    pages = []
+    # Last frame where part of the process was loaded.
+    last_frame = 0
 
+    # Frames used.
+    frames = []
+
+    i = 0
     while pages_left > 0:
-        # Find first empty page from the last page loaded.
-        i = last_page
+
+        # If there are no empty frames and
+        # the process hasn't been loaded completely.
+        if i >= MEM_SIZE and pages_left > 0:
+            # Swap-out (placeholder)
+            print()
+
+        # Find first/next empty frame.
         while i < MEM_SIZE:
-            last_page = i + PAGE_SIZE
             if M[i] == None:
-                pages.append(i)
-                # Load to this page.
+                frames.append(i)
+                # Load to this frame.
                 for j in range(0, PAGE_SIZE):
                     M[i + j] = p
                 pages_left -= 1
                 break
+            # Move to next frame.
+            i += PAGE_SIZE
 
-    print("Se asignaron los marcos de página ", pages, " al proceso ", p)
-    proc_pages[p] = pages
+    print("Se asignaron los marcos de página", frames, "al proceso", p)
+    proc_pages[p] = frames
 
+# Access virtual address "d" of process "p".
+# d: virtual address (0 <= d <= max virtual address of "p")
+# p: process ID
+# m: mode (0 - read only, 1 - write)
+def access_addr(d, p, m):
+
+    print("\nObtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
+    if m == 1:
+        print(" y modificar dicha dirección", end="")
+
+    print("\nDirección virtual: ", d, ". ", end="", sep="")
+
+    # Handle invalid cases
+    if not p in proc_pages:
+        print("\nError: no existe el proceso ", p, ".", sep="")
+        return
+    if d < 0 or d > len(proc_pages[p]) * PAGE_SIZE:
+        print("\nError: la dirección virtual está fuera del rango de direcciones del proceso ", p, ".", sep="")
+        return
+    if m != 0 and m != 1:
+        print("\nError: el modo de acceso debe ser 0 (lectura) o 1 (escritura).")
+        return
+
+    # Calculate the physical address.
+    # The page number of the process (e.g. 0, 1, 2...)
+    page = math.floor(d / PAGE_SIZE)
+    # The displacement from the start of the page.
+    fraction, whole = math.modf(d / PAGE_SIZE)
+    disp = int(round(fraction, 4) * 16)
+    # The address of the frame where the page is stored.
+    """ TODO: if the page is not loaded (it's in swapping area)
+              it must be loaded by swapping-out a process.
+    """
+    frame = proc_pages[p][page]
+    addr = frame + disp
+    print("Dirección real:", addr)
