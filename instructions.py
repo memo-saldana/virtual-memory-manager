@@ -1,5 +1,4 @@
 import math
-
 # Constants
 MEM_SIZE = 2048
 PAGE_SIZE = 16
@@ -89,7 +88,12 @@ def P(n, p):
         # If there are no empty frames and
         # the process hasn't been loaded completely.
         if i >= MEM_SIZE and pages_left > 0:
-            # Swap-out (placeholder)
+            if(straregy):
+                # FIFO
+                print('fifo')
+            else:
+                # LRU
+                print('lru')
             print()
 
         # Find first/next empty frame.
@@ -125,5 +129,5 @@ def L(p):
     print ("Se liberan los marcos de página de memoria real: ", pages)
 
 def E():
-	print("Fin de instrucciones")
-	exit()
+    print("Fin de las instrucciones")
+    exit()
