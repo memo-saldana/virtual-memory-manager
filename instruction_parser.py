@@ -9,7 +9,7 @@ def parse_instructions():
     # Check that instruction file exists before parsing
     if not os.path.isfile(file_path):
         print('El archivo no existe, revisa el nombre ingresado')
-        print('Terminando ejecucion por error de input')
+        print('Terminando ejecución por error de input')
 
         exit()
     
@@ -32,7 +32,7 @@ def parse_instructions():
                 # Checks instruction arguments
                 if(len(words) < 4):
                     print('Cantidad invalida de argumentos en linea ', i+1)
-                    print('Terminando ejecucion por error de input')
+                    print('Terminando ejecución por error de input')
                     exit()
                 instruction = [words[0]]
                 # Tries to convert to number and adds to parsed instruction
@@ -42,13 +42,13 @@ def parse_instructions():
                     instruction.append(int(words[3]))
                 except ValueError:
                     print("Uno de los argumentos en la linea ", i+1, "no es valido")
-                    print('Terminando ejecucion por error de input')
+                    print('Terminando ejecución por error de input')
                     exit()
             elif words[0] == 'P':
                 # Checks instruction arguments
                 if(len(words) < 3):
                     print('Cantidad invalida de argumentos en linea ', i+1)
-                    print('Terminando ejecucion por error de input')
+                    print('Terminando ejecución por error de input')
                     exit()
                 instruction = [words[0]]
                 # Tries to convert to number and adds to parsed instruction
@@ -57,13 +57,13 @@ def parse_instructions():
                     instruction.append(int(words[2]))
                 except ValueError:
                     print("Uno de los argumentos en la linea ", i+1, "no es valido")
-                    print('Terminando ejecucion por error de input')
+                    print('Terminando ejecución por error de input')
                     exit()
             elif words[0] == 'L':
                 # Checks instruction arguments
                 if(len(words) < 2):
                     print('Cantidad invalida de argumentos en linea ', i+1)
-                    print('Terminando ejecucion por error de input')
+                    print('Terminando ejecución por error de input')
                     exit()
                 instruction = [words[0]]
                 # Tries to convert to number and adds to parsed instruction
@@ -71,7 +71,7 @@ def parse_instructions():
                     instruction.append(int(words[1]))
                 except ValueError:
                     print("Uno de los argumentos en la linea ", i+1, "no es valido")
-                    print('Terminando ejecucion por error de input')
+                    print('Terminando ejecución por error de input')
                     exit()
             elif words[0] == 'C':
                 instruction = [words[0]]
