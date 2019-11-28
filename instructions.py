@@ -282,7 +282,3 @@ def F():
     # M
     # S
     # dictionaries
-
-print(M)
-print()
-print(lru_next_swap)
