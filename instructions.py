@@ -1,13 +1,87 @@
 import math
 # Constants
 MEM_SIZE = 2048
+SWAP_MEM_SIZE = 4096
 PAGE_SIZE = 16
+STRATEGY = True # Will be revalued once main is run, for now it sets fifo as default
 # Memory
 M = [None] * MEM_SIZE
 # Swapping area
-S = [None] * 4096
+S = [None] * SWAP_MEM_SIZE
 # To keep track of which frames every process is loaded at.
+""" 
+    Structure:
+    proc_pages = {
+        "processId": {
+            "Frame#": Space in real memory
+        }
+
+    }
+"""
 proc_pages = {}
+
+# Track which frames of every process were swapped, and where they reside in the swapping memory
+""" 
+    Structure:
+    swapped_pages = {
+        "processId": {
+            "Frame#": Space in swap memory
+    }
+"""
+swapped_pages = {}
+
+# Queue of pages used for FIFO Strategy
+fifo_next_swap = []
+
+# Finds next available page in swap memory, and returns it
+def findAvailableFrameInSwapMemory():
+    for i in range(0,SWAP_MEM_SIZE,PAGE_SIZE):
+        if(S[i]==None): return i
+
+    print('La memoria de swap esta llena, se requiere más para completar la secuencia de procesos')
+    print('Terminando ejecución por falta de memoria')
+    exit()
+
+# Loads page i with values val to memory
+# i: page
+# val: process or value to set
+def loadPageToFrame(i, process, page):
+    val = None if process == None and page == None else [process,page]
+    for j in range(0, PAGE_SIZE):
+        M[i + j] = val
+            
+
+# Loads page i with values val to swap memory
+# i: page
+# val: process or value to set
+def loadPageToSwap(i, process, page):
+    val = None if process == None and page == None else [process,page]
+    for j in range(0, PAGE_SIZE):
+        S[i + j] = val
+
+def swap(new_page, new_process, next_frame):
+    [old_process, old_page] = M[next_frame]
+
+    # Find next available frame in swap memory
+    available_at_swap = findAvailableFrameInSwapMemory()
+
+    # Load swapped page to swap memory
+    loadPageToSwap(available_at_swap, old_process, old_page)
+
+    # If process is not already in swapped_pages, add it
+    if old_process not in swapped_pages:
+        swapped_pages[old_process] = {}
+
+    # Store in swapped_pages where the process will be stored in swap
+    swapped_pages[old_process][old_page] = available_at_swap
+    print("next_frame")
+    print(next_frame)
+    # Remove old frame from proc_pages
+    del proc_pages[old_process][old_page]
+
+    # Load page to the frame
+    loadPageToFrame(next_frame, new_process, new_page)
+    proc_pages[new_process][new_page] = next_frame
 
 # Access virtual address "d" of process "p".
 # d: virtual address (0 <= d <= max virtual address of "p")
@@ -38,10 +112,26 @@ def A(d, p, m):
     # The displacement from the start of the page.
     fraction, whole = math.modf(d / PAGE_SIZE)
     disp = int(round(fraction, 4) * 16)
+    
+    if page not in proc_pages[p]:
+      # page is in the swapping area
+        if STRATEGY: 
+            # FIFO
+            # Get next frame to be swapped, and the process it corresponds to
+            next_frame = fifo_next_swap.pop()
+            # Readd it to queue, since it will be reused
+            fifo_next_swap.insert(0, next_frame)
+        else:
+            print('lru not available yet')
+            exit()
+        
+        swap(page,p,next_frame)
+        # Remove from this page from area
+        page_in_swaparea = swapped_pages[p][page]
+        loadPageToSwap(page_in_swaparea,None, None)
+        del swapped_pages[p][page]
+
     # The address of the frame where the page is stored.
-    """ TODO: if the page is not loaded (it's in swapping area)
-              it must be loaded by swapping-out a process.
-    """
     frame = proc_pages[p][page]
     addr = frame + disp
     print("Dirección real:", addr)
@@ -73,61 +163,104 @@ def P(n, p):
     
     # Calculate how many pages are needed to load the process.
     num_of_pages = math.ceil(n / PAGE_SIZE)
-    # Pages left to load.
-    pages_left = num_of_pages
-
-    # Last frame where part of the process was loaded.
-    last_frame = 0
 
     # Frames used.
     frames = []
 
+    proc_pages[p] = {}
     i = 0
-    while pages_left > 0:
+    current_page = 0
+    while current_page < num_of_pages:
 
         # If there are no empty frames and
         # the process hasn't been loaded completely.
-        if i >= MEM_SIZE and pages_left > 0:
-            if(straregy):
+        if i >= MEM_SIZE and current_page < num_of_pages:
+            # Choose which frame to use next
+            if(STRATEGY):
                 # FIFO
-                print('fifo')
+                # Get next frame to be swapped, and the process it corresponds to
+                next_frame = fifo_next_swap.pop()
+                # Readd it to queue, since it will be reused
+                fifo_next_swap.insert(0, next_frame)
             else:
                 # LRU
-                print('lru')
-            print()
+                print('lru not available yet')
+                exit()
 
+            swap(current_page, p, next_frame)
+            
+            # Store loaded frame to display and store
+            frames.append(next_frame)
+            
+            current_page += 1
+            
+            
         # Find first/next empty frame.
         while i < MEM_SIZE:
             if M[i] == None:
+                # Store loaded frame to display and store
                 frames.append(i)
+                proc_pages[p][current_page] = i
+                if(STRATEGY):
+                    # If using fifo, add each used frame into the queue of used frames
+                    fifo_next_swap.insert(0, i)
+                else:
+                    print('lru not available yey')
+                    exit()
                 # Load to this frame.
-                for j in range(0, PAGE_SIZE):
-                    M[i + j] = p
-                pages_left -= 1
+                loadPageToFrame(i, p, current_page)
+                current_page += 1
                 break
             # Move to next frame.
             i += PAGE_SIZE
 
     print("Se asignaron los marcos de página", frames, "al proceso", p)
-    proc_pages[p] = frames
 
 def L(p):
 
     print ("Liberar los marcos de página ocupados por el proceso ", p)
-    
-    if (proc_pages[p] == None): 
+    if (proc_pages[p] == None):
         print ("El proceso ", p, " no se ha ejecutado")
         return
-    
+
+    # Frees up M
     pages = proc_pages[p]
-    size = len(pages) 
- 
-    for i in pages:
-        for j in range(i, i + PAGE_SIZE):
-            M[j] = None
-   
+
+    for key in pages:
+        loadPageToFrame(pages[key],None, None)
+
+    if STRATEGY:
+        # Free up fifo queue of p's frames, only keeps frames that are not in the
+        #  process being freed up
+        fifo_next_swap = [i for i in fifo_next_swap if i not in pages.keys()]
+    else:
+        print("lru is not available yet")
+        exit()
+
+    del proc_pages[p]
     print ("Se liberan los marcos de página de memoria real: ", pages)
+
+    # Frees up S
+
+    if swapped_pages[p] != None :
+        swapped = swapped[p]
+
+        for key in swapped:
+            loadPageToSwap(swapped[key], None, None)
+
+        del swapped_pages[p]
+        print ("Se liberan los marcos " , swapped, " del área de swapping")
 
 def E():
     print("Fin de las instrucciones")
     exit()
+
+P(2048, 10)
+P(30,4)
+A(10,10,0)
+P(5, 1001)
+print(proc_pages)
+print()
+print(fifo_next_swap)
+print()
+print(swapped_pages)
