@@ -254,13 +254,3 @@ def L(p):
 def E():
     print("Fin de las instrucciones")
     exit()
-
-P(2048, 10)
-P(30,4)
-A(10,10,0)
-P(5, 1001)
-print(proc_pages)
-print()
-print(fifo_next_swap)
-print()
-print(swapped_pages)
