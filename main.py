@@ -14,7 +14,7 @@ def main():
     false - uses lru		 
     """
     # Sets strategy on instructions
-    instructions.strategy = True if sys.argv[1] == 'fifo' else False
+    instructions.STRATEGY = True if sys.argv[1] == 'fifo' else False
 
     parsed_instructions = parse_instructions()
     for instruction in parsed_instructions:
