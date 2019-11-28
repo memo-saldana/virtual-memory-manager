@@ -271,6 +271,18 @@ def E():
 P(2048,10)
 A(50, 10, 0)
 
+def F():
+    # Turnaround time
+    # Avg turnaround
+    # Page faults per process (when page not in memory is needed, NOT FROM P)
+    # Amount of Swap in / swap out operations
+
+    # Reset variables
+    # Queues
+    # M
+    # S
+    # dictionaries
+
 print(M)
 print()
 print(lru_next_swap)
