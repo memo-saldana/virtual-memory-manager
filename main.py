@@ -18,7 +18,7 @@ def main():
 
     parsed_instructions = parse_instructions()
     for instruction in parsed_instructions:
-        print(' '.join(str(x) for x in instruction))
+        print("\n" + ' '.join(str(x) for x in instruction))
     # Add calls to each instruction
         if instruction[0] == 'P':
             instructions.P(instruction[1], instruction[2])

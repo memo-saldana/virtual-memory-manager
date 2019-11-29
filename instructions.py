@@ -117,7 +117,7 @@ def updateLRU(page):
 # m: mode (0 - read only, 1 - write)
 def A(d, p, m):
 
-    print("\nObtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
+    print("Obtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
     if m == 1:
         print(" y modificar dicha dirección", end="")
 
@@ -165,7 +165,7 @@ def A(d, p, m):
 # Command example: P 534 5834
 def P(n, p):
 
-    print("\nAsignar", n, "bytes al proceso", p)
+    print("Asignar", n, "bytes al proceso", p)
 
     # Handle invalid cases
     if n <= 0:
