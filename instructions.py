@@ -268,9 +268,11 @@ def L(p):
 def E():
     print("Fin de las instrucciones")
     exit()
+"""   
 P(2048,10)
 A(50, 10, 0)
 
 print(M)
 print()
 print(lru_next_swap)
+"""
