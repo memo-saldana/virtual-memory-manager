@@ -41,8 +41,8 @@ def findAvailableFrameInSwapMemory():
     for i in range(0,SWAP_MEM_SIZE,PAGE_SIZE):
         if(S[i]==None): return i
 
-    print('La memoria de swap esta llena, se requiere más para completar la secuencia de procesos')
-    print('Terminando ejecución por falta de memoria')
+    print('La memoria de swap está llena. Se requiere más para completar la secuencia de procesos.')
+    print('Terminando ejecución por falta de memoria.')
     exit()
 
 # Loads page i with values val to memory
@@ -117,7 +117,7 @@ def updateLRU(page):
 # m: mode (0 - read only, 1 - write)
 def A(d, p, m):
 
-    print("\nObtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
+    print("Obtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
     if m == 1:
         print(" y modificar dicha dirección", end="")
 
@@ -165,7 +165,7 @@ def A(d, p, m):
 # Command example: P 534 5834
 def P(n, p):
 
-    print("\nAsignar", n, "bytes al proceso", p)
+    print("Asignar", n, "bytes al proceso", p)
 
     # Handle invalid cases
     if n <= 0:
@@ -252,7 +252,7 @@ def L(p):
         exit()
 
     del proc_pages[p]
-    print ("Se liberan los marcos de página de memoria real: ", pages)
+    print ("Se liberan los marcos de página de memoria real:", pages)
 
     # Frees up S
 
@@ -263,13 +263,11 @@ def L(p):
             loadPageToSwap(swapped[key], None, None)
 
         del swapped_pages[p]
-        print ("Se liberan los marcos " , swapped, " del área de swapping")
+        print ("Se liberan los marcos", swapped, "del área de swapping")
 
 def E():
     print("Fin de las instrucciones")
     exit()
-P(2048,10)
-A(50, 10, 0)
 
 def F():
     # Turnaround time
