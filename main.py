@@ -7,7 +7,7 @@ def main():
     if(len(sys.argv) < 2 or sys.argv[1] not in ['fifo', 'lru']):
         print('Forma de uso: %s (fifo|lru)' % sys.argv[0])
         exit()
-    print('Utilizando ', sys.argv[1], ' como estrategia de remplazo')
+    print('Utilizando ', sys.argv[1], ' como estrategia de reemplazo.')
     """ 
     Bool that sets strategy for simulation
     true - uses fifo

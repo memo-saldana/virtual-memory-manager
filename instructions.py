@@ -41,8 +41,8 @@ def findAvailableFrameInSwapMemory():
     for i in range(0,SWAP_MEM_SIZE,PAGE_SIZE):
         if(S[i]==None): return i
 
-    print('La memoria de swap esta llena, se requiere más para completar la secuencia de procesos')
-    print('Terminando ejecución por falta de memoria')
+    print('La memoria de swap está llena. Se requiere más para completar la secuencia de procesos.')
+    print('Terminando ejecución por falta de memoria.')
     exit()
 
 # Loads page i with values val to memory
