@@ -26,12 +26,13 @@ def parse_instructions():
             C - all comments
         """
         for i, line in enumerate(lines):
-            words = line.split(' ')
+            words = ' '.join(line.split()).split(' ')
             # Manage all valid cases
             if words[0] == 'A':
                 # Checks instruction arguments
                 if(len(words) < 4):
                     print('Cantidad inválida de argumentos en línea ', i+1, '.', sep="")
+                    print('Instrucción \'A\' espera 3 argumentos, recibió ', len(words)-1,'.', sep="")
                     print('Terminando ejecución por error de input.')
                     exit()
                 instruction = [words[0]]
@@ -44,10 +45,14 @@ def parse_instructions():
                     print("Uno de los argumentos en la línea", i+1, "no es válido.", sep="")
                     print('Terminando ejecución por error de input.')
                     exit()
+                if instruction[3] not in [0,1]:
+                    print("El argumento 3 es inválido, esperando (0|1), se recibió ", instruction[3])
+                    exit()
             elif words[0] == 'P':
                 # Checks instruction arguments
                 if(len(words) < 3):
                     print('Cantidad inválida de argumentos en línea ', i+1, '.', sep="")
+                    print('Instrucción \'P\' espera 3 argumentos, recibió ', len(words)-1,'.', sep="")
                     print('Terminando ejecución por error de input.')
                     exit()
                 instruction = [words[0]]
@@ -63,6 +68,7 @@ def parse_instructions():
                 # Checks instruction arguments
                 if(len(words) < 2):
                     print('Cantidad inválida de argumentos en línea ', i+1, '.', sep="")
+                    print('Instrucción \'L\' espera 3 argumentos, recibió ', len(words)-1,'.', sep="")
                     print('Terminando ejecución por error de input.')
                     exit()
                 instruction = [words[0]]
