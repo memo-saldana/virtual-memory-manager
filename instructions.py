@@ -250,7 +250,7 @@ def P(n, p):
             swap(current_page, p, next_frame)
             
             # Store loaded frame to display and store
-            frames.append(next_frame)
+            frames.append(next_frame/PAGE_SIZE)
             
             # Store this page fault
             page_faults += 1
@@ -265,7 +265,7 @@ def P(n, p):
         while i < MEM_SIZE:
             if M[i] == None:
                 # Store loaded frame to display and store
-                frames.append(i)
+                frames.append(i/PAGE_SIZE)
                 proc_pages[p][current_page] = i
                 if(STRATEGY):
                     # If using fifo, add each used frame into the fifo queue
@@ -310,8 +310,9 @@ def L(p):
         # free up lru qqueue of p's frames, only keeps frames that are not in the 
         #  process being freed up
         lru_next_swap = [i for i in lru_next_swap if i not in pages.values()]
-
-    print ("Se liberan los marcos de página de memoria real:", pages)
+    
+    page_frames = map(lambda x: x/PAGE_SIZE, page.values())
+    print ("Se liberan los marcos de página de memoria real:", page_frames)
 
     # Frees up S
     swapped = {}
@@ -320,9 +321,9 @@ def L(p):
 
         for key in swapped:
             loadPageToSwap(swapped[key], None, None)
-
-        del swapped_pages[p]
+        swapped_page_frames = map(lambda x: x/PAGE_SIZE, swapped)
         print ("Se liberan los marcos", swapped, "del área de swapping")
+        del swapped_pages[p]
 
     # Update time, for each page freed up in memory and swapped, 0.1s pass
     current_time += (len(pages) + len(swapped)) * 0.1 
