@@ -311,7 +311,7 @@ def L(p):
         #  process being freed up
         lru_next_swap = [i for i in lru_next_swap if i not in pages.values()]
     
-    page_frames = map(lambda x: x/PAGE_SIZE, page.values())
+    page_frames = [math.floor(i/PAGE_SIZE )for i in pages.values()]
     print ("Se liberan los marcos de página de memoria real:", page_frames)
 
     # Frees up S
@@ -321,7 +321,8 @@ def L(p):
 
         for key in swapped:
             loadPageToSwap(swapped[key], None, None)
-        swapped_page_frames = map(lambda x: x/PAGE_SIZE, swapped)
+
+        swapped_page_frames = [math.floor(i/PAGE_SIZE) for i in swapped.values()]
         print ("Se liberan los marcos", swapped_page_frames, "del área de swapping")
         del swapped_pages[p]
 
@@ -350,8 +351,11 @@ def F():
     for key in proc_pages:
 
         if "end_time" not in proc_pages[key] :
-            print("Error: El proceso ", key, " no ha sido liberado, se debe liberar antes de finalizar las instrucciones.", sep ="")
-            return
+            print("Liberando proceso ", key, "por fin de instrucciones.")
+            L(key)
+            print()
+
+    for key in proc_pages:
 
         processes += 1
         current_turn_around = proc_pages[key]["end_time"] - proc_pages[key]["start_time"]
