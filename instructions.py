@@ -322,7 +322,7 @@ def L(p):
         for key in swapped:
             loadPageToSwap(swapped[key], None, None)
         swapped_page_frames = map(lambda x: x/PAGE_SIZE, swapped)
-        print ("Se liberan los marcos", swapped, "del área de swapping")
+        print ("Se liberan los marcos", swapped_page_frames, "del área de swapping")
         del swapped_pages[p]
 
     # Update time, for each page freed up in memory and swapped, 0.1s pass
