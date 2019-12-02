@@ -58,7 +58,7 @@ def findAvailableFrameInSwapMemory():
 
 # Finds next available page in memory, and returns it
 def findAvailableFrameInMemory():
-    for i in range(0,SWAP_MEM_SIZE,PAGE_SIZE):
+    for i in range(0,MEM_SIZE,PAGE_SIZE):
         if(M[i]==None): return i
 
     return -1
@@ -88,8 +88,10 @@ def loadPageToSwap(i, process, page):
 # new_process: process id of the new frame
 # next_frame: space in memory that corresponds to where the new process will be placed
 def swap(new_page, new_process, next_frame):
+    global current_time, page_faults
     # Get info of the previous process and its page at that space in memory
-    [old_process, old_page] = M[next_frame]
+    print('next_f => ', next_frame, "M[next_frame] = ", M[next_frame])
+    old_process, old_page = M[next_frame]
 
     # Find next available frame in swap memory
     available_at_swap = findAvailableFrameInSwapMemory()
@@ -147,7 +149,7 @@ def updateLRU(page):
 # p: process ID
 # m: mode (0 - read only, 1 - write)
 def A(d, p, m):
-
+    global total_swaps
     print("Obtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
     if m == 1:
         print(" y modificar dicha dirección", end="")
@@ -160,10 +162,11 @@ def A(d, p, m):
         return
     if d < 0 or d > len(proc_pages[p]) * PAGE_SIZE:
         print("\nError: la dirección virtual está fuera del rango de direcciones del proceso ", p, ".", sep="")
-        return
+        print("Terminando ejecución por falta de memoria")
+        exit()
     if m != 0 and m != 1:
         print("\nError: el modo de acceso debe ser 0 (lectura) o 1 (escritura).")
-        return
+        exit()
 
     # Calculate the physical address.
     # The page number of the process (e.g. 0, 1, 2...)
@@ -208,25 +211,22 @@ def A(d, p, m):
 # p: process ID
 # Command example: P 534 5834
 def P(n, p):
-
+    global current_time, page_faults, total_swaps
     print("Asignar", n, "bytes al proceso", p)
 
     # Handle invalid cases
     if n <= 0:
         print("Error: el tamaño del proceso debe ser mayor que cero.")
-        exit()
-
+        return
     if n > 2048:
         print("Error: el tamaño del proceso no puede exceder 2048 bytes.")
-        exit()
-
+        return
     if p < 0:
         print("Error: el identificador del proceso debe ser igual o mayor que cero.")
-        exit()
-
+        return
     if p in proc_pages:
         print("Error: ya existe un proceso con ese identificador.")
-        exit()
+        return
     
     # Calculate how many pages are needed to load the process.
     num_of_pages = math.ceil(n / PAGE_SIZE)
@@ -287,33 +287,36 @@ def P(n, p):
     print("Se asignaron los marcos de página", frames, "al proceso", p)
 
 def L(p):
-
+    global fifo_next_swap, lru_next_swap, proc_pages, swapped_pages, current_time
     print ("Liberar los marcos de página ocupados por el proceso ", p)
     if (proc_pages[p] == None):
         print ("El proceso ", p, " no se ha ejecutado")
         return
-
+    if "end_time" in proc_pages[p]:
+        print ("El proceso ", p, " ya fue liberado")
+        return
     # Frees up M
     pages = proc_pages[p]
 
     for key in pages:
-        loadPageToFrame(pages[key],None, None)
+        if key!= "start_time":
+            loadPageToFrame(pages[key],None, None)
 
     if STRATEGY:
         # Free up fifo queue of p's frames, only keeps frames that are not in the
         #  process being freed up
-        fifo_next_swap = [i for i in fifo_next_swap if i[0] not in pages.keys()]
+        fifo_next_swap = [i for i in fifo_next_swap if i not in pages.values()]
     else:
         # free up lru qqueue of p's frames, only keeps frames that are not in the 
         #  process being freed up
-        lru_next_swap = [i for i in lru_next_swap if i[0] not in pages.keys()]
+        lru_next_swap = [i for i in lru_next_swap if i not in pages.values()]
 
     print ("Se liberan los marcos de página de memoria real:", pages)
 
     # Frees up S
     swapped = {}
-    if swapped_pages[p] != None :
-        swapped = swapped[p]
+    if p in swapped_pages:
+        swapped = swapped_pages[p]
 
         for key in swapped:
             loadPageToSwap(swapped[key], None, None)
@@ -332,24 +335,27 @@ def E():
     exit()
 
 def F():
+    global proc_pages, swapped_pages, lru_next_swap, fifo_next_swap, page_faults, total_swaps
     print("Fin. Reporte de salida: ")
     # Number of processes counted
     processes = 0
     # Variable to store current sum and then divide to calculate verage
     average_turn_around = 0
-
+    if len(proc_pages) == 0:
+        print("No se tienen procesos en memoria.")
+        print("No se pueden calcular el reporte de estadísticas.")
+        return
     # Turnaround time
     for key in proc_pages:
 
         if "end_time" not in proc_pages[key] :
             print("Error: El proceso ", key, " no ha sido liberado, se debe liberar antes de finalizar las instrucciones.", sep ="")
-            print('Terminando ejecución.')            
-            exit()
+            return
 
         processes += 1
         current_turn_around = proc_pages[key]["end_time"] - proc_pages[key]["start_time"]
 
-        print("El proceso ", key, "tuvo un turnaround time de ", current_turn_around, ".", sep="")
+        print("Proceso: ", key, "\t Turnaround time: ", current_turn_around, ".", sep="")
         
         average_turn_around += current_turn_around
     
