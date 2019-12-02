@@ -3,7 +3,7 @@ import math
 MEM_SIZE = 2048
 SWAP_MEM_SIZE = 4096
 PAGE_SIZE = 16
-STRATEGY = False # Will be revalued once main is run, for now it sets fifo as default
+STRATEGY = False # Will be revalued once main is run, for now it sets lru as default
 # Memory
 M = [None] * MEM_SIZE
 # Swapping area
@@ -13,6 +13,7 @@ S = [None] * SWAP_MEM_SIZE
     Structure:
     proc_pages = {
         "processId": {
+            "current_time": Time in seconds
             "Frame#": Space in real memory
         }
 
@@ -36,6 +37,15 @@ fifo_next_swap = []
 # Queue of pages used for LRU Strategy
 lru_next_swap = []
 
+# Current time for measurments
+current_time = 0.0
+
+# Amount of page faults that have occured
+page_faults = 0
+
+# Amount of swap in / swap out operations
+total_swaps = 0
+
 # Finds next available page in swap memory, and returns it
 def findAvailableFrameInSwapMemory():
     for i in range(0,SWAP_MEM_SIZE,PAGE_SIZE):
@@ -44,6 +54,15 @@ def findAvailableFrameInSwapMemory():
     print('La memoria de swap está llena. Se requiere más para completar la secuencia de procesos.')
     print('Terminando ejecución por falta de memoria.')
     exit()
+
+
+# Finds next available page in memory, and returns it
+def findAvailableFrameInMemory():
+    for i in range(0,SWAP_MEM_SIZE,PAGE_SIZE):
+        if(M[i]==None): return i
+
+    return -1
+
 
 # Loads page i with values val to memory
 # i: page
@@ -61,6 +80,7 @@ def loadPageToSwap(i, process, page):
     val = None if process == None and page == None else [process,page]
     for j in range(0, PAGE_SIZE):
         S[i + j] = val
+
 
 # Puts the new process's new page into memory, in the next frame's current 
 #  space of memory, and puts the current page in that frame into the swap area
@@ -90,7 +110,15 @@ def swap(new_page, new_process, next_frame):
     # Load page to the frame
     loadPageToFrame(next_frame, new_process, new_page)
     proc_pages[new_process][new_page] = next_frame
+    
+    # Update current time, 2 seconds passed due to writing both to memory and swap
+    current_time += 2.0
 
+    # Store page fault
+    page_faults += 1
+
+
+# Uses strategy to choose which frame to remove from memory and place to swap
 def chooseNext():
     # Choose which frame to use next
     if(STRATEGY):
@@ -107,10 +135,13 @@ def chooseNext():
         lru_next_swap.insert(0, next_frame)
     return next_frame
 
+
 # Updates an exsiting entry in the lru queue, placing it to the end of the queue
 def updateLRU(page):
     lru_next_swap.remove(page)
     lru_next_swap.insert(0,page)
+
+
 # Access virtual address "d" of process "p".
 # d: virtual address (0 <= d <= max virtual address of "p")
 # p: process ID
@@ -144,16 +175,29 @@ def A(d, p, m):
     if page not in proc_pages[p]:
         # page is in the swapping area
         # choose next frame to swap and swap it
-        next_frame = chooseNext()        
+
+        # Check first if there is free memory
+        next_frame = findAvailableFrameInMemory()
+        
+        # If no memory is free, choose which to swap
+        if next_frame == -1:
+            next_frame = chooseNext()     
+        
         swap(page,p,next_frame)
+
+        # Adds a swap out and a swap in to the stored count
+        total_swaps += 2
+
         # Remove from this page from area
         page_in_swaparea = swapped_pages[p][page]
         loadPageToSwap(page_in_swaparea,None, None)
         del swapped_pages[p][page]
+
     elif not STRATEGY:
         # if the page is already in memory,and we are using lru
         # update lru queue to move the current page being
         updateLRU(proc_pages[p][page])
+
     # The address of the frame where the page is stored.
     frame = proc_pages[p][page]
     addr = frame + disp
@@ -170,19 +214,19 @@ def P(n, p):
     # Handle invalid cases
     if n <= 0:
         print("Error: el tamaño del proceso debe ser mayor que cero.")
-        return
+        exit()
 
     if n > 2048:
         print("Error: el tamaño del proceso no puede exceder 2048 bytes.")
-        return
+        exit()
 
     if p < 0:
         print("Error: el identificador del proceso debe ser igual o mayor que cero.")
-        return
+        exit()
 
     if p in proc_pages:
         print("Error: ya existe un proceso con ese identificador.")
-        return
+        exit()
     
     # Calculate how many pages are needed to load the process.
     num_of_pages = math.ceil(n / PAGE_SIZE)
@@ -191,6 +235,8 @@ def P(n, p):
     frames = []
 
     proc_pages[p] = {}
+    # Save process start time
+    proc_pages[p]["start_time"] = current_time
     i = 0
     current_page = 0
     while current_page < num_of_pages:
@@ -206,6 +252,12 @@ def P(n, p):
             # Store loaded frame to display and store
             frames.append(next_frame)
             
+            # Store this page fault
+            page_faults += 1
+
+            # Adds a swap in operation
+            total_swaps += 1
+
             current_page += 1
             
             
@@ -223,6 +275,10 @@ def P(n, p):
                     lru_next_swap.insert(0, i)
                 # Load to this frame.
                 loadPageToFrame(i, p, current_page)
+
+                # Updates time, loading page to memory takes 1s
+                current_time += 1
+
                 current_page += 1
                 break
             # Move to next frame.
@@ -246,16 +302,16 @@ def L(p):
     if STRATEGY:
         # Free up fifo queue of p's frames, only keeps frames that are not in the
         #  process being freed up
-        fifo_next_swap = [i for i in fifo_next_swap if i not in pages.keys()]
+        fifo_next_swap = [i for i in fifo_next_swap if i[0] not in pages.keys()]
     else:
-        print("lru is not available yet")
-        exit()
+        # free up lru qqueue of p's frames, only keeps frames that are not in the 
+        #  process being freed up
+        lru_next_swap = [i for i in lru_next_swap if i[0] not in pages.keys()]
 
-    del proc_pages[p]
     print ("Se liberan los marcos de página de memoria real:", pages)
 
     # Frees up S
-
+    swapped = {}
     if swapped_pages[p] != None :
         swapped = swapped[p]
 
@@ -265,19 +321,73 @@ def L(p):
         del swapped_pages[p]
         print ("Se liberan los marcos", swapped, "del área de swapping")
 
+    # Update time, for each page freed up in memory and swapped, 0.1s pass
+    current_time += (len(pages) + len(swapped)) * 0.1 
+
+    # Store current time for turnaround
+    proc_pages[p]["end_time"] = current_time
+
 def E():
     print("Fin de las instrucciones")
     exit()
 
 def F():
+    print("Fin. Reporte de salida: ")
+    # Number of processes counted
+    processes = 0
+    # Variable to store current sum and then divide to calculate verage
+    average_turn_around = 0
+
     # Turnaround time
+    for key in proc_pages:
+
+        if "end_time" not in proc_pages[key] :
+            print("Error: El proceso ", key, " no ha sido liberado, se debe liberar antes de finalizar las instrucciones.", sep ="")
+            print('Terminando ejecución.')            
+            exit()
+
+        processes += 1
+        current_turn_around = proc_pages[key]["end_time"] - proc_pages[key]["start_time"]
+
+        print("El proceso ", key, "tuvo un turnaround time de ", current_turn_around, ".", sep="")
+        
+        average_turn_around += current_turn_around
+    
+    average_turn_around = average_turn_around / processes
+
     # Avg turnaround
+    print("Turnaround promedio: ", average_turn_around, sep="")
+
     # Page faults per process (when page not in memory is needed, NOT FROM P)
+    print("Page faults: ", page_faults, sep="")
+
     # Amount of Swap in / swap out operations
+    print("Operaciones de swap in/swap out: ", total_swaps, sep="")
 
     # Reset variables
+    
     # Queues
-    # M
-    # S
+    if STRATEGY:   
+        # Queue of pages used for FIFO Strategy
+        fifo_next_swap = []
+    else:     
+        # Queue of pages used for LRU Strategy
+        lru_next_swap = []
+    
+    # Memory
+    M = [None] * MEM_SIZE
+    # Swapping area
+    S = [None] * SWAP_MEM_SIZE
+    
     # dictionaries
-    print()
+    swapped_pages = {}
+    proc_pages = {}
+
+    # Data for statistics
+
+    # Current time for measurments
+    current_time = 0.0
+    # Amount of page faults that have occured
+    page_faults = 0
+    # Amount of swap in / swap out operations
+    total_swaps = 0
