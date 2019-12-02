@@ -26,5 +26,14 @@ def main():
             instructions.A(instruction[1], instruction[2], instruction[3])
         elif instruction[0] == 'E':
             instructions.E()
+        elif instruction[0] == 'L':
+            instructions.L(instruction[1])
+        elif instruction[0] == 'F':
+            instructions.F()
+        elif instruction[0] != 'C':
+            print("Instrucción inválida.")
+            print('Terminando ejecución por error de input.')
+            exit()
+
 
 main()
