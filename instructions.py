@@ -99,7 +99,7 @@ def swap(new_page, new_process, next_frame):
     if available_at_swap == -1:
         return False
 
-    print("Página ", old_page, " del proceso ", old_process, " swappeada al marco ", available_at_swap, " del área de swapping.")
+    print("Página ", old_page, " del proceso ", old_process, " swappeada al marco ", math.floor(available_at_swap/PAGE_SIZE), " del área de swapping.")
     # Load swapped page to swap memory
     loadPageToSwap(available_at_swap, old_process, old_page)
 
@@ -154,21 +154,21 @@ def A(d, p, m):
     global total_swaps,current_time, page_faults
     print("Obtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
     if m == 1:
-        print(" y modificar dicha dirección", end="")
-
-    print("\nDirección virtual: ", d, ". ", end="", sep="")
+        print(" y modificar dicha dirección")
+    else:
+        print()
 
     # Handle invalid cases
     if not p in proc_pages:
-        print("\nError: no existe el proceso ", p, ".", sep="")
+        print("Error: no existe el proceso ", p, ".", sep="")
         print("No se ejecutará esta instrucción")
         return
     if d < 0 or d > len(proc_pages[p]) * PAGE_SIZE:
-        print("\nError: la dirección virtual está fuera del rango de direcciones del proceso ", p, ".", sep="")
+        print("Error: la dirección virtual está fuera del rango de direcciones del proceso ", p, ".", sep="")
         print("No se ejecutará esta instrucción")
         return
     if m != 0 and m != 1:
-        print("\nError: el modo de acceso debe ser 0 (lectura) o 1 (escritura).")
+        print("Error: el modo de acceso debe ser 0 (lectura) o 1 (escritura).")
         print("No se ejecutará esta instrucción")
         return
 
@@ -207,7 +207,7 @@ def A(d, p, m):
             loadPageToFrame(next_frame,p,page)
             proc_pages[p][page] = next_frame
             # Add time to load page to frame and off  
-            current_time += 20
+            current_time += 11
             if STRATEGY:
                 # FIFO
                 fifo_next_swap.insert(0, next_frame)
@@ -215,8 +215,8 @@ def A(d, p, m):
                 # LRU
                 lru_next_swap.insert(0, next_frame)
             # Since only moving out of swap, only a swap out is counted 
-            total_swaps += 2
-
+            total_swaps += 1
+        print("Se localizó la página ", page, " del proceso ", p, " que estaba en la posición ", swapped_pages[p][page], " y se cargó al marco ", math.floor(next_frame/PAGE_SIZE), ".")
 
         # Remove from this page from area
         page_in_swaparea = swapped_pages[p][page]
@@ -233,6 +233,8 @@ def A(d, p, m):
     # The address of the frame where the page is stored.
     frame = proc_pages[p][page]
     addr = frame + disp
+    print("Dirección virtual: ", d, ". ", end="", sep="")
+
     print("Dirección real:", addr)
 
 # Load a process to memory (M).
