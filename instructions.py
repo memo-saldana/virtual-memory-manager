@@ -37,8 +37,8 @@ fifo_next_swap = []
 # Queue of pages used for LRU Strategy
 lru_next_swap = []
 
-# Current time for measurments
-current_time = 0.0
+# Current time for measurments (measured in 10ths of a second due to problems with python and floating point sums)
+current_time = 0
 
 # Amount of page faults that have occured
 page_faults = 0
@@ -90,7 +90,6 @@ def loadPageToSwap(i, process, page):
 def swap(new_page, new_process, next_frame):
     global current_time, page_faults
     # Get info of the previous process and its page at that space in memory
-    print('next_f => ', next_frame, "M[next_frame] = ", M[next_frame])
     old_process, old_page = M[next_frame]
 
     # Find next available frame in swap memory
@@ -114,10 +113,7 @@ def swap(new_page, new_process, next_frame):
     proc_pages[new_process][new_page] = next_frame
     
     # Update current time, 2 seconds passed due to writing both to memory and swap
-    current_time += 2.0
-
-    # Store page fault
-    page_faults += 1
+    current_time += 20
 
 
 # Uses strategy to choose which frame to remove from memory and place to swap
@@ -149,7 +145,7 @@ def updateLRU(page):
 # p: process ID
 # m: mode (0 - read only, 1 - write)
 def A(d, p, m):
-    global total_swaps
+    global total_swaps,current_time, page_faults
     print("Obtener la dirección real correspondiente a la dirección virtual", d, "del proceso", p, end="")
     if m == 1:
         print(" y modificar dicha dirección", end="")
@@ -179,6 +175,9 @@ def A(d, p, m):
         # page is in the swapping area
         # choose next frame to swap and swap it
 
+        # Store page fault
+        page_faults += 1
+
         # Check first if there is free memory
         next_frame = findAvailableFrameInMemory()
         
@@ -200,7 +199,9 @@ def A(d, p, m):
         # if the page is already in memory,and we are using lru
         # update lru queue to move the current page being
         updateLRU(proc_pages[p][page])
-
+        current_time += 1
+    else:
+        current_time += 1
     # The address of the frame where the page is stored.
     frame = proc_pages[p][page]
     addr = frame + disp
@@ -251,9 +252,6 @@ def P(n, p):
             
             # Store loaded frame to display and store
             frames.append(next_frame/PAGE_SIZE)
-            
-            # Store this page fault
-            page_faults += 1
 
             # Adds a swap in operation
             total_swaps += 1
@@ -277,7 +275,7 @@ def P(n, p):
                 loadPageToFrame(i, p, current_page)
 
                 # Updates time, loading page to memory takes 1s
-                current_time += 1
+                current_time += 10
 
                 current_page += 1
                 break
@@ -326,8 +324,8 @@ def L(p):
         print ("Se liberan los marcos", swapped_page_frames, "del área de swapping")
         del swapped_pages[p]
 
-    # Update time, for each page freed up in memory and swapped, 0.1s pass
-    current_time += (len(pages) + len(swapped)) * 0.1 
+    # Update time, for each page freed up in memory and swapped, 0.1s pass ,(-1 because of "start_time")
+    current_time += (len(pages) + len(swapped) - 1) 
 
     # Store current time for turnaround
     proc_pages[p]["end_time"] = current_time
@@ -337,8 +335,7 @@ def E():
     exit()
 
 def F():
-    global proc_pages, swapped_pages, lru_next_swap, fifo_next_swap, page_faults, total_swaps
-    print("Fin. Reporte de salida: ")
+    global proc_pages, swapped_pages, lru_next_swap, fifo_next_swap, page_faults, total_swaps, current_time
     # Number of processes counted
     processes = 0
     # Variable to store current sum and then divide to calculate verage
@@ -347,25 +344,30 @@ def F():
         print("No se tienen procesos en memoria.")
         print("No se pueden calcular el reporte de estadísticas.")
         return
+     
+    check_values = [i for i in proc_pages if "end_time" not in proc_pages[i] ]
+    if len(check_values) > 0:
+        print("Liberando procesos que aun siguen corriendo para calcular reporte de estadísticas.")
+        print()
     # Turnaround time
-    for key in proc_pages:
-
+    for key in sorted(proc_pages.keys()):
         if "end_time" not in proc_pages[key] :
-            print("Liberando proceso ", key, "por fin de instrucciones.")
+            print("L(", key, ")")
             L(key)
             print()
 
+    print("Fin. Reporte de salida: ")
     for key in proc_pages:
 
         processes += 1
-        current_turn_around = proc_pages[key]["end_time"] - proc_pages[key]["start_time"]
+        current_turn_around = (proc_pages[key]["end_time"] - proc_pages[key]["start_time"])/10
 
         print("Proceso: ", key, "\t Turnaround time: ", current_turn_around, ".", sep="")
         
         average_turn_around += current_turn_around
     
     average_turn_around = average_turn_around / processes
-
+    
     # Avg turnaround
     print("Turnaround promedio: ", average_turn_around, sep="")
 
@@ -397,7 +399,7 @@ def F():
     # Data for statistics
 
     # Current time for measurments
-    current_time = 0.0
+    current_time = 0
     # Amount of page faults that have occured
     page_faults = 0
     # Amount of swap in / swap out operations
