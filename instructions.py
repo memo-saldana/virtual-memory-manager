@@ -119,6 +119,7 @@ def swap(new_page, new_process, next_frame):
     
     # Update current time, 2 seconds passed due to writing both to memory and swap
     current_time += 20
+    return True
 
 
 # Uses strategy to choose which frame to remove from memory and place to swap
@@ -179,6 +180,12 @@ def A(d, p, m):
     disp = int(round(fraction, 4) * 16)
     
     if page not in proc_pages[p]:
+        # Checks that page exists first
+        if page not in swapped_pages[p]:
+            print("No existe esa dirección para el proceso ", p)
+            print("No se ejecutará esta instrucción")
+            return
+
         # page is in the swapping area
         # choose next frame to swap and swap it
 
@@ -199,8 +206,16 @@ def A(d, p, m):
         else:
             loadPageToFrame(next_frame,p,page)
             proc_pages[p][page] = next_frame
+            # Add time to load page to frame and off  
+            current_time += 20
+            if STRATEGY:
+                # FIFO
+                fifo_next_swap.insert(0, next_frame)
+            else:
+                # LRU
+                lru_next_swap.insert(0, next_frame)
             # Since only moving out of swap, only a swap out is counted 
-            total_swaps += 1
+            total_swaps += 2
 
 
         # Remove from this page from area
@@ -326,10 +341,11 @@ def L(p):
         #  process being freed up
         fifo_next_swap = [i for i in fifo_next_swap if i not in pages.values()]
     else:
-        # free up lru qqueue of p's frames, only keeps frames that are not in the 
+        # free up lru queue of p's frames, only keeps frames that are not in the 
         #  process being freed up
         lru_next_swap = [i for i in lru_next_swap if i not in pages.values()]
-    page_frames = [math.floor(pages[i]/PAGE_SIZE ) for i in pages.keys() if i != 'start_time' and i != 'end_time' ]
+
+    page_frames = [math.floor(pages[i]/PAGE_SIZE ) for i in pages.keys() if i != 'start_time']
     print ("Se liberan los marcos de página de memoria real:", page_frames)
 
     # Frees up S
@@ -369,15 +385,15 @@ def F():
     if len(check_values) > 0:
         print("Liberando procesos que aun siguen corriendo para calcular reporte de estadísticas.")
         print()
-    # Turnaround time
-    for key in sorted(proc_pages.keys()):
-        if "end_time" not in proc_pages[key] :
-            print("L(", key, ")")
-            L(key)
-            print()
+        # Turnaround time
+        for key in sorted(check_values):
+            if "end_time" not in proc_pages[key] :
+                print("L(", key, ")")
+                L(key)
+                print()
 
     print("Fin. Reporte de salida: ")
-    for key in proc_pages:
+    for key in sorted(proc_pages.keys()):
 
         processes += 1
         current_turn_around = (proc_pages[key]["end_time"] - proc_pages[key]["start_time"])/10
