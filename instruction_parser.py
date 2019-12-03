@@ -33,64 +33,67 @@ def parse_instructions():
                 if(len(words) < 4):
                     print('Cantidad inválida de argumentos en línea ', i+1, '.', sep="")
                     print('Instrucción \'A\' espera 3 argumentos, recibió ', len(words)-1,'.', sep="")
-                    print('Terminando ejecución por error de input.')
-                    exit()
-                instruction = [words[0]]
-                # Tries to convert to number and adds to parsed instruction
-                try:
-                    instruction.append(int(words[1]))
-                    instruction.append(int(words[2]))
-                    instruction.append(int(words[3]))
-                except ValueError:
-                    print("Uno de los argumentos en la línea", i+1, "no es válido.", sep="")
-                    print('Terminando ejecución por error de input.')
-                    exit()
-                if instruction[3] not in [0,1]:
-                    print("El argumento 3 es inválido, esperando (0|1), se recibió ", instruction[3])
-                    exit()
+                    print('No se ejecutará esta instrucción.')
+                else:
+                    instruction = [words[0]]
+                    # Tries to convert to number and adds to parsed instruction
+                    try:
+                        instruction.append(int(words[1]))
+                        instruction.append(int(words[2]))
+                        instruction.append(int(words[3]))
+                        if instruction[3] not in [0,1]:
+                            print("El argumento 3 es inválido, esperando (0|1), se recibió ", instruction[3])
+                        else:
+                            instructions.append(instruction)
+                    except ValueError:
+                        print("Uno de los argumentos en la línea", i+1, "no es válido.", sep="")
+                        print('No se ejecutará esta instrucción.')
+                        exit()
+
             elif words[0] == 'P':
                 # Checks instruction arguments
                 if(len(words) < 3):
                     print('Cantidad inválida de argumentos en línea ', i+1, '.', sep="")
                     print('Instrucción \'P\' espera 3 argumentos, recibió ', len(words)-1,'.', sep="")
-                    print('Terminando ejecución por error de input.')
-                    exit()
-                instruction = [words[0]]
-                # Tries to convert to number and adds to parsed instruction
-                try:
-                    instruction.append(int(words[1]))
-                    instruction.append(int(words[2]))
-                except ValueError:
-                    print("Uno de los argumentos en la línea", i+1, "no es válido.")
-                    print('Terminando ejecución por error de input.')
-                    exit()
+                    print('No se ejecutará esta instrucción.')
+                else:                
+                    instruction = [words[0]]
+                    # Tries to convert to number and adds to parsed instruction
+                    try:
+                        instruction.append(int(words[1]))
+                        instruction.append(int(words[2]))
+                        instructions.append(instruction)
+                    except ValueError:
+                        print("Uno de los argumentos en la línea", i+1, "no es válido.")
+                        print('No se ejecutará esta instrucción.')
             elif words[0] == 'L':
                 # Checks instruction arguments
                 if(len(words) < 2):
                     print('Cantidad inválida de argumentos en línea ', i+1, '.', sep="")
                     print('Instrucción \'L\' espera 3 argumentos, recibió ', len(words)-1,'.', sep="")
-                    print('Terminando ejecución por error de input.')
-                    exit()
-                instruction = [words[0]]
-                # Tries to convert to number and adds to parsed instruction
-                try:
-                    instruction.append(int(words[1]))
-                except ValueError:
-                    print("Uno de los argumentos en la línea", i+1, "no es válido.")
-                    print('Terminando ejecución por error de input.')
-                    exit()
+                    print('No se ejecutará esta instrucción.')
+                else:
+                    instruction = [words[0]]
+                    # Tries to convert to number and adds to parsed instruction
+                    try:
+                        instruction.append(int(words[1]))
+                        instructions.append(instruction)
+                    except ValueError:
+                        print("Uno de los argumentos en la línea", i+1, "no es válido.")
+                        print('No se ejecutará esta instrucción.')
             elif words[0] == 'C':
                 instruction = [words[0]]
                 # Joins comment that will be printed out and adds it to the instruction
                 instruction.append(' '.join(words[1::]))
+                instructions.append(instruction)
             elif words[0]== 'E':
                 instruction = [words[0]]
+                instructions.append(instruction)
             elif words[0] == 'F':
                 instruction = [words[0]]
+                instructions.append(instruction)
             else: 
                 # Manage invalid instruction
                 print("Instrucción inválida en la línea ", i+1, ".", sep="")
-                print('Terminando ejecución por error de input.')
-                exit()
-            instructions.append(instruction)
+                print('No se ejecutará esta instrucción.')
         return instructions
